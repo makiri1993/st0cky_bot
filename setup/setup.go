@@ -37,7 +37,7 @@ func InitDb() *gorm.DB {
 	}
 
 	// Migrate the schema
-	db.AutoMigrate(&models.BingNews{})
+	db.AutoMigrate(&models.News{})
 	db.AutoMigrate(&models.User{})
 	db.AutoMigrate(&models.Keyword{})
 	return db

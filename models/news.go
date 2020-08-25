@@ -43,6 +43,7 @@ type News struct {
 	Url    string
 	Source string
 	Date   string
+	Sent   bool
 }
 
 func NewsToString(ans *BingNews) string {
