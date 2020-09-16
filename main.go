@@ -2,7 +2,7 @@ package main
 
 import (
 	"bing-news-api/api"
-	"bing-news-api/setup"
+	. "bing-news-api/setup"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
@@ -15,9 +15,9 @@ type Product struct {
 
 func main() {
 
-	db := setup.InitDb()
-	defer setup.CloseDb(db)
+	InitDb()
+	defer CloseDb()
+	InitBot()
 
-	bot, u := setup.InitBot()
-	api.SendNewsToUser(bot, u, db)
+	api.SendNewsToUser()
 }

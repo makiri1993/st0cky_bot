@@ -15,34 +15,39 @@ const (
 	db       = "host=127.0.0.1 port=5432 user=postgres dbname=postgres password=password sslmode=disable"
 )
 
-func InitBot() (*tgbotapi.BotAPI, tgbotapi.UpdateConfig) {
-	bot, err := tgbotapi.NewBotAPI(botToken)
+var DbConn *gorm.DB
+var Bot *tgbotapi.BotAPI
+var BotUpdateConfig tgbotapi.UpdateConfig
+
+func InitBot() {
+	var err error
+	Bot, err = tgbotapi.NewBotAPI(botToken)
+
 	if err != nil {
 		log.Panic(err)
 	}
 
-	bot.Debug = true
+	Bot.Debug = true
 
-	log.Printf("Authorized on account %s", bot.Self.UserName)
+	log.Printf("Authorized on account %s", Bot.Self.UserName)
 
-	u := tgbotapi.NewUpdate(0)
-	u.Timeout = 60
-	return bot, u
+	BotUpdateConfig = tgbotapi.NewUpdate(0)
+	BotUpdateConfig.Timeout = 60
 }
 
-func InitDb() *gorm.DB {
-	db, err := gorm.Open("postgres", db)
+func InitDb() {
+	var err error
+	DbConn, err = gorm.Open("postgres", db)
 	if err != nil {
 		panic(fmt.Sprintf("failed to connect to database Error:%s", err))
 	}
 
 	// Migrate the schema
-	db.AutoMigrate(&models.News{})
-	db.AutoMigrate(&models.User{})
-	db.AutoMigrate(&models.Keyword{})
-	return db
+	DbConn.AutoMigrate(&models.News{})
+	DbConn.AutoMigrate(&models.User{})
+	DbConn.AutoMigrate(&models.Keyword{})
 }
 
-func CloseDb(db *gorm.DB) {
-	db.Close()
+func CloseDb() {
+	DbConn.Close()
 }

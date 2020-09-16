@@ -3,60 +3,63 @@ package api
 import (
 	"bing-news-api/db"
 	"bing-news-api/models"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
-	"github.com/jinzhu/gorm"
+	. "bing-news-api/setup"
+	. "github.com/go-telegram-bot-api/telegram-bot-api"
 	"log"
 )
 
 const (
-	KeyboardNews = "Get news"
-	KeyboardUser = "Get user data"
-	CommandStart = "start"
+	KeyboardNews        = "Get news"
+	KeyboardAddKeyboard = "Add search keyword"
+	KeyboardUser        = "Get user data"
+	CommandStart        = "start"
 )
 
-var numericKeyboard = tgbotapi.NewReplyKeyboard(
-	tgbotapi.NewKeyboardButtonRow(
-		tgbotapi.NewKeyboardButton(KeyboardNews),
-		tgbotapi.NewKeyboardButton(KeyboardUser),
+var numericKeyboard = NewReplyKeyboard(
+	NewKeyboardButtonRow(
+		NewKeyboardButton(KeyboardNews),
+		NewKeyboardButton(KeyboardAddKeyboard),
+		NewKeyboardButton(KeyboardUser),
 	),
 )
 
-func SendNewsToUser(bot *tgbotapi.BotAPI, u tgbotapi.UpdateConfig, conn *gorm.DB) {
+func SendNewsToUser() {
 
-	updates, _ := bot.GetUpdatesChan(u)
+	updates, _ := Bot.GetUpdatesChan(BotUpdateConfig)
 
 	for update := range updates {
 		if update.Message == nil {
 			continue
 		}
 
-		successMessage := db.FindOrCreateUser(conn, update.Message.From.UserName, update.Message.Chat.ID)
-		msg := tgbotapi.NewMessage(update.Message.Chat.ID,
+		successMessage := db.FindOrCreateUser(update.Message.From.UserName, update.Message.Chat.ID)
+		msg := NewMessage(update.Message.Chat.ID,
 			successMessage)
-		bot.Send(msg)
+		Bot.Send(msg)
 
-		if handleCommands(bot, update) {
+		if handleCommands(update) {
 			return
 		}
 
-		handleKeyboardTasks(bot, update, msg)
+		handleKeyboardTasks(update, msg)
 	}
 }
 
-func handleKeyboardTasks(bot *tgbotapi.BotAPI, update tgbotapi.Update, msg tgbotapi.MessageConfig) {
+func handleKeyboardTasks(update Update, msg MessageConfig) {
 	switch update.Message.Text {
 	case KeyboardNews:
-		handleTelegramUpdate(update, bot)
-
+		handleTelegramUpdate(update)
+	case KeyboardAddKeyboard:
+		handleTelegramUpdate(update)
 	default:
 		msg.Text = "I don't know that task"
 	}
-	bot.Send(msg)
+	Bot.Send(msg)
 }
 
-func handleCommands(bot *tgbotapi.BotAPI, update tgbotapi.Update) bool {
+func handleCommands(update Update) bool {
 	if update.Message.IsCommand() {
-		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
+		msg := NewMessage(update.Message.Chat.ID, "")
 
 		switch update.Message.Command() {
 		case CommandStart:
@@ -65,19 +68,19 @@ func handleCommands(bot *tgbotapi.BotAPI, update tgbotapi.Update) bool {
 		default:
 			msg.Text = "I don't know that command"
 		}
-		bot.Send(msg)
+		Bot.Send(msg)
 		return true
 	}
 	return false
 }
 
-func handleTelegramUpdate(update tgbotapi.Update, bot *tgbotapi.BotAPI) {
+func handleTelegramUpdate(update Update) {
 
 	newsResult := GetBingNews(update.Message.Text)
 	news := models.NewsToString(newsResult)
 	log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
 
-	msg := tgbotapi.NewMessage(update.Message.Chat.ID, news)
+	msg := NewMessage(update.Message.Chat.ID, news)
 
-	bot.Send(msg)
+	Bot.Send(msg)
 }

@@ -1,14 +1,14 @@
 package db
 
 import (
-	"bing-news-api/models"
-	"github.com/jinzhu/gorm"
+	. "bing-news-api/models"
+	. "bing-news-api/setup"
 )
 
-func FindOrCreateUser(db *gorm.DB, userName string, telegramID int64) string {
-	var user models.User
+func FindOrCreateUser(userName string, telegramID int64) string {
+	var user User
 
-	db.Where(&user).Assign(models.User{
+	DbConn.Where(&user).Assign(User{
 		Name:           userName,
 		TelegramChatID: telegramID,
 	}).FirstOrCreate(&user)
