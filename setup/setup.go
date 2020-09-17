@@ -3,9 +3,10 @@ package setup
 import (
 	"bing-news-api/models"
 	"fmt"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/jinzhu/gorm"
+	. "gopkg.in/tucnak/telebot.v2"
 	"log"
+	"time"
 )
 
 const (
@@ -16,23 +17,24 @@ const (
 )
 
 var DbConn *gorm.DB
-var Bot *tgbotapi.BotAPI
-var BotUpdateConfig tgbotapi.UpdateConfig
+var TelegramBot *Bot
 
 func InitBot() {
 	var err error
-	Bot, err = tgbotapi.NewBotAPI(botToken)
+
+	TelegramBot, err = NewBot(Settings{
+		// You can also set custom API URL.
+		// If field is empty it equals to "https://api.telegram.org".
+		Token:  botToken,
+		Poller: &LongPoller{Timeout: 10 * time.Second},
+	})
 
 	if err != nil {
 		log.Panic(err)
 	}
 
-	Bot.Debug = true
+	log.Printf("Authorized on account %s", TelegramBot.Me.Username)
 
-	log.Printf("Authorized on account %s", Bot.Self.UserName)
-
-	BotUpdateConfig = tgbotapi.NewUpdate(0)
-	BotUpdateConfig.Timeout = 60
 }
 
 func InitDb() {

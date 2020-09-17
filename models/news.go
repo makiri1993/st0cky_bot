@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"github.com/jinzhu/gorm"
 	"strings"
 )
@@ -40,16 +41,35 @@ type BingNews struct {
 
 type News struct {
 	gorm.Model
+	Title  string
 	Url    string
 	Source string
 	Date   string
 	Sent   bool
 }
 
-func NewsToString(ans *BingNews) string {
+func prettifyDate(date string) string {
+	return strings.Replace(date[0:16], "T", " ", 1)
+}
+
+func (bingNews BingNews) ToString() string {
 	var news []string
-	for _, result := range ans.Value {
-		news = append(news, result.Name, "\n", result.URL, "\n\n")
+	for _, result := range bingNews.Value {
+		news = append(news, result.Name, "\n", result.URL, "\n", prettifyDate(result.DatePublished), "\n\n")
 	}
 	return strings.Join(news, "")
+}
+
+func (bingNews BingNews) ToNewsStructs() []News {
+	var news []News
+
+	for _, result := range bingNews.Value {
+		news = append(news, News{Title: result.Name, Url: result.URL, Source: "Test", Date: result.DatePublished, Sent: false})
+	}
+
+	return news
+}
+
+func (news News) ToString() string {
+	return fmt.Sprintf("%v\n%v\n%v\n\n", news.Title, news.Url, prettifyDate(news.Date))
 }

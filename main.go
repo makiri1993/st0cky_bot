@@ -19,5 +19,6 @@ func main() {
 	defer CloseDb()
 	InitBot()
 
-	api.SendNewsToUser()
+	api.RegisterRoutes()
+	//api.SendNewsToUser()
 }

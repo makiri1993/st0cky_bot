@@ -2,85 +2,77 @@ package api
 
 import (
 	"bing-news-api/db"
-	"bing-news-api/models"
 	. "bing-news-api/setup"
-	. "github.com/go-telegram-bot-api/telegram-bot-api"
-	"log"
+	. "gopkg.in/tucnak/telebot.v2"
+	"strings"
 )
 
-const (
-	KeyboardNews        = "Get news"
-	KeyboardAddKeyboard = "Add search keyword"
-	KeyboardUser        = "Get user data"
-	CommandStart        = "start"
+var (
+	HelloCommand      = Command{Text: "/hello", Description: "Say hello to St0cky. Be nice man."}
+	AddKeywordCommand = Command{Text: "/add_keyword", Description: "Add a new keyword for your search queries. Example: /add_keyword <keyword here>."}
+	GetNewsCommand    = Command{Text: "/get_news", Description: "Get news by providing a keyword. There are no checks so you will just get the newest information."}
+	HelpCommand       = Command{Text: "/help", Description: "Just some help."}
 )
 
-var numericKeyboard = NewReplyKeyboard(
-	NewKeyboardButtonRow(
-		NewKeyboardButton(KeyboardNews),
-		NewKeyboardButton(KeyboardAddKeyboard),
-		NewKeyboardButton(KeyboardUser),
-	),
-)
+func RegisterRoutes() {
+	TelegramBot.SetCommands([]Command{HelloCommand, AddKeywordCommand, GetNewsCommand, HelpCommand})
 
-func SendNewsToUser() {
+	TelegramBot.Handle(HelloCommand.Text, helloHandler)
+	TelegramBot.Handle(AddKeywordCommand.Text, addKeywordHandler)
+	TelegramBot.Handle(GetNewsCommand.Text, getNewsHandler)
+	TelegramBot.Handle(HelpCommand.Text, helpHandler)
 
-	updates, _ := Bot.GetUpdatesChan(BotUpdateConfig)
+	TelegramBot.Start()
+}
 
-	for update := range updates {
-		if update.Message == nil {
-			continue
-		}
+func checkIfUserExists(m *Message) {
+	isCreated := db.FindOrCreateUser(m.Sender.Username, m.Chat.ID)
+	if isCreated != "" {
+		TelegramBot.Send(m.Sender, isCreated)
 
-		successMessage := db.FindOrCreateUser(update.Message.From.UserName, update.Message.Chat.ID)
-		msg := NewMessage(update.Message.Chat.ID,
-			successMessage)
-		Bot.Send(msg)
-
-		if handleCommands(update) {
-			return
-		}
-
-		handleKeyboardTasks(update, msg)
 	}
 }
 
-func handleKeyboardTasks(update Update, msg MessageConfig) {
-	switch update.Message.Text {
-	case KeyboardNews:
-		handleTelegramUpdate(update)
-	case KeyboardAddKeyboard:
-		handleTelegramUpdate(update)
-	default:
-		msg.Text = "I don't know that task"
-	}
-	Bot.Send(msg)
+func helloHandler(m *Message) {
+	checkIfUserExists(m)
+	TelegramBot.Send(m.Sender, "Hey man! I'm looking forward to help you.")
 }
 
-func handleCommands(update Update) bool {
-	if update.Message.IsCommand() {
-		msg := NewMessage(update.Message.Chat.ID, "")
+func addKeywordHandler(m *Message) {
+	checkIfUserExists(m)
 
-		switch update.Message.Command() {
-		case CommandStart:
-			msg.ReplyMarkup = numericKeyboard
-			msg.Text = "What can I do for you?"
-		default:
-			msg.Text = "I don't know that command"
-		}
-		Bot.Send(msg)
-		return true
+	if m.Payload == "" {
+		TelegramBot.Send(m.Sender, "Can you repeat the keyword? I didn't get it.")
+		return
 	}
-	return false
+
+	message := db.FindOrCreateKeyword(m.Payload, m.Chat.ID)
+	TelegramBot.Send(m.Sender, message)
 }
 
-func handleTelegramUpdate(update Update) {
+func helpHandler(m *Message) {
+	checkIfUserExists(m)
 
-	newsResult := GetBingNews(update.Message.Text)
-	news := models.NewsToString(newsResult)
-	log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
+	TelegramBot.Send(m.Sender, "Here will be the help")
+}
 
-	msg := NewMessage(update.Message.Chat.ID, news)
+func getNewsHandler(m *Message) {
+	checkIfUserExists(m)
 
-	Bot.Send(msg)
+	if m.Payload == "" {
+		TelegramBot.Send(m.Sender, "Can you repeat the search term? I didn't get it.")
+		return
+	}
+
+	newsResult := GetBingNews(m.Payload)
+	news := db.FindOrCreateNews(newsResult.ToNewsStructs())
+
+	var newsString []string
+	for _, result := range news {
+		newsString = append(newsString, result.ToString())
+	}
+
+	TelegramBot.Send(m.Sender, strings.Join(newsString, ""))
+
+	db.UpdateNews(news)
 }

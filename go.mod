@@ -9,6 +9,8 @@ require (
 	github.com/go-telegram-bot-api/telegram-bot-api v4.6.4+incompatible
 	github.com/jinzhu/gorm v1.9.15
 	github.com/mattn/go-shellwords v1.0.10 // indirect
+	github.com/mitchellh/hashstructure v1.0.0 // indirect
 	github.com/technoweenie/multipartstreamer v1.0.1 // indirect
+	gopkg.in/tucnak/telebot.v2 v2.3.4
 	gopkg.in/urfave/cli.v1 v1.20.0 // indirect
 )
