@@ -11,6 +11,7 @@ require (
 	github.com/mattn/go-shellwords v1.0.10 // indirect
 	github.com/mitchellh/hashstructure v1.0.0 // indirect
 	github.com/technoweenie/multipartstreamer v1.0.1 // indirect
+	gopkg.in/robfig/cron.v2 v2.0.0-20150107220207-be2e0b0deed5
 	gopkg.in/tucnak/telebot.v2 v2.3.4
 	gopkg.in/urfave/cli.v1 v1.20.0 // indirect
 )

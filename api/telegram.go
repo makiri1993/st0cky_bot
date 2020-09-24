@@ -22,7 +22,6 @@ func RegisterRoutes() {
 	TelegramBot.Handle(GetNewsCommand.Text, getNewsHandler)
 	TelegramBot.Handle(HelpCommand.Text, helpHandler)
 
-	TelegramBot.Start()
 }
 
 func checkIfUserExists(m *Message) {
