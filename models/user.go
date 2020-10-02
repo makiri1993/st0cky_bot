@@ -2,14 +2,17 @@ package models
 
 import (
 	"fmt"
-	"github.com/jinzhu/gorm"
+	"time"
 )
 
 type User struct {
-	gorm.Model
-	Name           string
-	TelegramChatID int64
-	Keywords       []Keyword `gorm:"foreignkey:UserID"`
+	ID               int64 `gorm:"primaryKey"`
+	Name             string
+	AutomaticSending bool
+	Keywords         []Keyword
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
+	DeletedAt        *time.Time `sql:"index"`
 }
 
 func (user User) ToString() string {

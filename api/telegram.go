@@ -4,22 +4,23 @@ import (
 	"bing-news-api/db"
 	. "bing-news-api/setup"
 	. "gopkg.in/tucnak/telebot.v2"
-	"strings"
 )
 
 var (
-	HelloCommand      = Command{Text: "/hello", Description: "Say hello to St0cky. Be nice man."}
-	AddKeywordCommand = Command{Text: "/add_keyword", Description: "Add a new keyword for your search queries. Example: /add_keyword <keyword here>."}
-	GetNewsCommand    = Command{Text: "/get_news", Description: "Get news by providing a keyword. There are no checks so you will just get the newest information."}
-	HelpCommand       = Command{Text: "/help", Description: "Just some help."}
+	HelloCommand             = Command{Text: "/hello", Description: "Say hello to St0cky. Be nice man."}
+	AddKeywordCommand        = Command{Text: "/add_keyword", Description: "Add a new keyword for your search queries. Example: /add_keyword <keyword here>."}
+	GetNewsCommand           = Command{Text: "/get_news", Description: "Get news by providing a keyword. There are no checks so you will just get the newest information."}
+	ToggleLiveUpdatesCommand = Command{Text: "/toggle_live_updates", Description: "Toggle the mechanism for the automatic sending of new news."}
+	HelpCommand              = Command{Text: "/help", Description: "Just some help."}
 )
 
 func RegisterRoutes() {
-	TelegramBot.SetCommands([]Command{HelloCommand, AddKeywordCommand, GetNewsCommand, HelpCommand})
+	TelegramBot.SetCommands([]Command{HelloCommand, AddKeywordCommand, GetNewsCommand, ToggleLiveUpdatesCommand, HelpCommand})
 
 	TelegramBot.Handle(HelloCommand.Text, helloHandler)
 	TelegramBot.Handle(AddKeywordCommand.Text, addKeywordHandler)
 	TelegramBot.Handle(GetNewsCommand.Text, getNewsHandler)
+	TelegramBot.Handle(ToggleLiveUpdatesCommand.Text, toggleLiveUpdatesHandler)
 	TelegramBot.Handle(HelpCommand.Text, helpHandler)
 
 }
@@ -64,14 +65,13 @@ func getNewsHandler(m *Message) {
 	}
 
 	newsResult := GetBingNews(m.Payload)
-	news := db.FindOrCreateNews(newsResult.ToNewsStructs())
+	news := db.FindOrCreateNews(newsResult.ToNewsStructs(m.Chat.ID, m.Payload), m.Chat.ID, m.Payload)
 
-	var newsString []string
-	for _, result := range news {
-		newsString = append(newsString, result.ToString())
-	}
-
-	TelegramBot.Send(m.Sender, strings.Join(newsString, ""))
+	TelegramBot.Send(m.Sender, news.ToString())
 
 	db.UpdateNews(news)
+}
+
+func toggleLiveUpdatesHandler(m *Message) {
+
 }

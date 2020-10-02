@@ -19,12 +19,12 @@ func main() {
 	addCronJob()
 
 	TelegramBot.Start()
-	//api.SendNewsToUser()
 }
 
 func addCronJob() {
 	c := cron.New()
-	c.AddFunc("@every 0h0m1s", tasks.UpdateNewsForEveryUser)
+	c.AddFunc("@every 0h30m0s", tasks.UpdateNewsForEveryUser)
+	c.AddFunc("@every 0h20m0s", tasks.SendNewNewsToEveryUser)
 	c.Start()
 
 	// Added time to see output
