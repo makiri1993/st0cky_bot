@@ -7,7 +7,7 @@ import (
 	"log"
 )
 
-func FindOrCreateUser(userName string, telegramID int64) string {
+func FindOrCreateUser(userName string, telegramID int64) (isCreated bool, createdMessage string) {
 	var user User
 
 	if err := DbConn.Where("id = ?", telegramID).First(&user).Error; err != nil {
@@ -19,10 +19,10 @@ func FindOrCreateUser(userName string, telegramID int64) string {
 				AutomaticSending: true,
 			})
 
-			return "Created user: " + userName + ". Please repeat your command."
+			return true, "Created user: " + userName + ". Please repeat your command."
 		}
 	}
-	return ""
+	return false, ""
 }
 
 func GetAllUsers() []User {
@@ -36,4 +36,4 @@ func GetAllUsers() []User {
 	return users
 }
 
-func UpdateAutomaticNewsSendingOfUser() {}
+//func UpdateAutomaticNewsSendingOfUser() {}

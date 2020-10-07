@@ -44,7 +44,7 @@ func InitDb() {
 		panic(fmt.Sprintf("failed to connect to database Error:%s", err))
 	}
 
-	//DbConn.LogMode(true)
+	DbConn.LogMode(true)
 	// Migrate the schema
 	DbConn.AutoMigrate(&models.News{})
 	DbConn.AutoMigrate(&models.User{})
@@ -52,5 +52,9 @@ func InitDb() {
 }
 
 func CloseDb() {
-	DbConn.Close()
+	err := DbConn.Close()
+
+	if err != nil {
+		log.Panic(err)
+	}
 }
