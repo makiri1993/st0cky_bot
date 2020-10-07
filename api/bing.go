@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 )
 
@@ -18,7 +19,6 @@ func GetBingNews(searchTerm string) *models.BingNews {
 
 	param := req.URL.Query()
 	param.Add("q", searchTerm)
-	fmt.Println(param)
 	req.URL.RawQuery = param.Encode()
 
 	req.Header.Add("Ocp-Apim-Subscription-Key", setup.Token)
@@ -31,7 +31,12 @@ func GetBingNews(searchTerm string) *models.BingNews {
 		panic(err)
 	}
 
-	defer resp.Body.Close()
+	defer func() {
+		err := resp.Body.Close()
+		if err != nil {
+			log.Panic(err)
+		}
+	}()
 
 	body, err := ioutil.ReadAll(resp.Body)
 

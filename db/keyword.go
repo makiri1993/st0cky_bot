@@ -21,3 +21,13 @@ func FindOrCreateKeyword(searchTerm string, userID int64) string {
 	}
 	return "No worries! I'm already looking for this keyword."
 }
+
+func GetAllKeywordsPerUser(userID int64) Keywords {
+	var entries Keywords
+	DbConn.Model(&Keyword{}).Where("user_id = ?", userID).Find(&entries)
+	return entries
+}
+
+func DeleteKeyword(keywordID uint64) {
+	DbConn.Delete(&Keyword{}, keywordID)
+}
