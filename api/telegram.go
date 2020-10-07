@@ -42,6 +42,7 @@ func checkIfUserExists(m *Message) {
 
 func helloHandler(m *Message) {
 	checkIfUserExists(m)
+
 	safeTelegramSend(m.Sender, "Hey man! I'm looking forward to help you.")
 }
 
@@ -120,10 +121,17 @@ func getNewsHandler(m *Message) {
 }
 
 func safeTelegramSend(to *User, what string, options ...interface{}) {
-	message, err := TelegramBot.Send(to, what, options)
+	if len(options) == 0 {
+		message, err := TelegramBot.Send(to, what)
+		if err != nil {
+			log.Panicf("Error with message: %v \n\n %s", message, err)
+		}
+		return
+	}
 
+	message, err := TelegramBot.Send(to, what, options...)
 	if err != nil {
-		log.Panicf("Error with what: %v \n\n %s", message, err)
+		log.Panicf("Error with message: %v \n\n %s", message, err)
 	}
 }
 
