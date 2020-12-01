@@ -27,8 +27,8 @@ func addCronJob() {
 	c := cron.New()
 	tasks.UpdateNewsForEveryUser()
 	tasks.SendNewNewsToEveryUser()
-	addCronFunc(c, "@every 0h30m0s", tasks.UpdateNewsForEveryUser)
-	addCronFunc(c, "@every 0h20m0s", tasks.SendNewNewsToEveryUser)
+	addCronFunc(c, "@every 0h60m0s", tasks.UpdateNewsForEveryUser)
+	addCronFunc(c, "@every 0h70m0s", tasks.SendNewNewsToEveryUser)
 	c.Start()
 
 	// Added time to see output
