@@ -1,1 +1,5 @@
-/gin-bin
+Makefile
+
+.idea
+
+target
