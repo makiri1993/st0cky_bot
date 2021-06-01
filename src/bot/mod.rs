@@ -1,7 +1,9 @@
+use crate::models::api::BingNewsApiResponse;
 use crate::models::keyword::handle_keyword_creation;
 use crate::models::user::handle_user_creation;
 use sqlx::{Pool, Postgres};
 use std::error::Error;
+use teloxide::payloads::SendMessageSetters;
 use teloxide::{prelude::*, utils::command::BotCommand};
 use tokio_stream::wrappers::UnboundedReceiverStream;
 
@@ -36,6 +38,8 @@ enum Command {
     Help,
     #[command(description = "add a search keyword")]
     AddKeyword(String),
+    #[command(description = "get news for a specific searchterm")]
+    GetNews(String),
 }
 
 fn get_telegram_details(cx: &UpdateWithCx<AutoSend<Bot>, Message>) -> (i64, Option<String>) {
@@ -62,6 +66,33 @@ async fn answer(
                 searchterm
             ))
             .await?
+        }
+        Command::GetNews(searchterm) => {
+            let client = reqwest::Client::new();
+            let request_url = "https://api.cognitive.microsoft.com/bing/v7.0/news/search";
+
+            let response = client
+                .get(request_url)
+                .header(
+                    "Ocp-Apim-Subscription-Key",
+                    "17dfa447c0734e158d858e6f45526ff3",
+                )
+                .query(&[("q", &searchterm)])
+                .send()
+                .await?
+                .json::<BingNewsApiResponse>()
+                .await?;
+
+            let mut test = "".to_string();
+            response.value.iter().for_each(|news| {
+                test = format!(
+                    "{}<b><u>🔔 {}</u></b>\n\n{}\n\n🤓 <a href=\"{}\">Link</a>\n\n\n\n",
+                    test, news.name, news.description, news.url
+                );
+            });
+            cx.answer(test)
+                .parse_mode(teloxide::types::ParseMode::Html)
+                .await?
         }
     };
 
