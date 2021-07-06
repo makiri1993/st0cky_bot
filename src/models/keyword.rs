@@ -18,12 +18,6 @@ impl Keyword {
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct NewKeyword {
-    pub searchterm: Option<String>,
-    pub user_id: i64,
-}
-
 pub async fn handle_keyword_creation(
     connection: &Pool<Postgres>,
     searchterm: &str,
@@ -52,7 +46,7 @@ async fn check_if_keyword_already_existed(
     searchterm: &str,
     user_id: i64,
 ) -> Option<Keyword> {
-    let keywords = find_keywords_per_user(connection, user_id).await;
+    let keywords = find_keywords_per_user(connection, &user_id).await;
 
     keywords
         .unwrap()
